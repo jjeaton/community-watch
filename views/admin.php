@@ -13,12 +13,6 @@
  */
 ?>
 
-<?php
-
-// Get plugin instance
-// $_cw = CommunityWatch::get_instance();
-// error_log( print_r($this, true));
-?>
 <div class="wrap">
 
 	<?php screen_icon(); ?>
