@@ -8,11 +8,13 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Allows users to report inappropriate content across all a site's content types.
+Allows users to report inappropriate content across a site's content types.
 
 == Description ==
 
-Allows users to report inappropriate content across all a site's content types.
+Allows users to report inappropriate content across a site's content types.
+
+Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/).
 
 == Installation ==
 
