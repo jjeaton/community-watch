@@ -1,7 +1,7 @@
 === Community Watch ===
 Contributors: jjeaton
 Donate link: http://www.josheaton.org/
-Tags: comments, spam
+Tags: community, content
 Requires at least: 3.5.1
 Tested up to: 3.6
 Stable tag: 1.0.0

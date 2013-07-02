@@ -77,11 +77,8 @@ class CommunityWatch {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes'        ) );
 
 		// Load admin style sheet and JavaScript.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+		// add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
 		// add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-
-		// Filter post types
-		add_filter( 'cw_post_type_options', array( $this, 'remove_bbpress_cpts' ) );
 
 		// Load public-facing style sheet and JavaScript.
 		// add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
@@ -92,6 +89,9 @@ class CommunityWatch {
 
 		// Add bbpress support if it exists
 		$this->bbpress_support();
+
+		// Filter post types
+		add_filter( 'cw_post_type_options', array( $this, 'remove_bbpress_cpts' ) );
 
 		// AJAX Reporting Handlers
 		add_action( 'wp_ajax_cw_report_post',        array( $this, 'ajax_report_post' ) );

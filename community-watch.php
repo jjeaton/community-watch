@@ -12,8 +12,8 @@
  *
  * @wordpress-plugin
  * Plugin Name: Community Watch
- * Plugin URI:  TODO
- * Description: TODO
+ * Plugin URI:  http://www.josheaton.org/
+ * Description: Allows users to report inappropriate content across all content types.
  * Version:     1.0.0
  * Author:      Josh Eaton
  * Author URI:  http://www.josheaton.org/
