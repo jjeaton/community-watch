@@ -83,6 +83,7 @@ class CommunityWatch {
 		// Load public-facing style sheet and JavaScript.
 		// add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_head',            array( $this, 'public_css'      ) );
 
 		// Display 'report' link
 		add_filter( 'the_content', array( $this, 'display_report_link' ) );
@@ -201,6 +202,24 @@ class CommunityWatch {
 	 */
 	public function enqueue_styles() {
 		wp_enqueue_style( $this->plugin_slug . '-plugin-styles', plugins_url( 'css/public.css', __FILE__ ), array(), $this->version );
+	}
+
+	/**
+	 * Output CSS for report link in head
+	 *
+	 * (Use until more CSS is needed.)
+	 *
+	 * @since    1.0.0
+	 */
+	public function public_css() {
+		?>
+<style>
+	.cw-report-link.reported {
+		background: url(<?php echo plugins_url( 'img/tick.png', __FILE__ );?>) no-repeat 0 0;
+		padding-left: 20px;
+	}
+</style>
+	<?php
 	}
 
 	/**

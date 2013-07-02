@@ -25,7 +25,7 @@
 				}
 
 				if ( resp.success ) {
-					$('.cw-report-link').text('Reported');
+					$('.cw-report-link').text('Reported').addClass('reported');
 				} else {
 					console.log( 'Failed: ' + resp.err_msg );
 				}
