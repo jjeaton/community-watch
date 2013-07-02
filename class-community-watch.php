@@ -214,7 +214,8 @@ class CommunityWatch {
 	public function public_css() {
 		?>
 <style>
-	.cw-report-link.reported {
+	.cw-report-link.reported,
+	#bbpress-forums div.bbp-reply-content a.cw-report-link.reported {
 		background: url(<?php echo plugins_url( 'img/tick.png', __FILE__ );?>) no-repeat 0 0;
 		padding-left: 20px;
 	}
