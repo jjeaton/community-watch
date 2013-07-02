@@ -10,9 +10,7 @@
  */
 
 /**
- * Plugin class.
- *
- * TODO: Rename this class to a proper name for your plugin.
+ * Community Watch class
  *
  * @package CommunityWatch
  * @author  Josh Eaton <josh@josheaton.org>
@@ -68,21 +66,39 @@ class CommunityWatch {
 		// Load plugin text domain
 		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
-		// Add the options page and menu item.
-		// add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
+		// Register post types and admin columns
+		add_action( 'init',                                         array( $this, 'register_post_types'   )        );
+		add_filter( 'manage_edit-cw_content_report_columns',        array( $this, 'report_show_columns'   )        );
+		add_action( 'manage_cw_content_report_posts_custom_column',	array( $this, 'report_custom_columns' ), 10, 2 );
+
+		// Add the options page, menu item, and settings
+		add_action( 'admin_menu',     array( $this, 'add_plugin_admin_menu' ) );
+		add_action( 'admin_init',     array( $this, 'register_settings'     ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes'        ) );
 
 		// Load admin style sheet and JavaScript.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+		// add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+
+		// Filter post types
+		add_filter( 'cw_post_type_options', array( $this, 'remove_bbpress_cpts' ) );
 
 		// Load public-facing style sheet and JavaScript.
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+		// add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
-		// Define custom functionality. Read more about actions and filters: http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-		add_action( 'TODO', array( $this, 'action_method_name' ) );
-		add_filter( 'TODO', array( $this, 'filter_method_name' ) );
+		// Display 'report' link
+		add_filter( 'the_content', array( $this, 'display_report_link' ) );
 
+		// Add bbpress support if it exists
+		$this->bbpress_support();
+
+		// AJAX Reporting Handlers
+		add_action( 'wp_ajax_cw_report_post',        array( $this, 'ajax_report_post' ) );
+		add_action( 'wp_ajax_nopriv_cw_report_post', array( $this, 'ajax_report_post' ) );
+
+		// Add report link shortcode
+		add_shortcode( 'cw_report_link', array( $this, 'add_cw_report_link_shortcode' ) );
 	}
 
 	/**
@@ -194,6 +210,11 @@ class CommunityWatch {
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'js/public.js', __FILE__ ), array( 'jquery' ), $this->version );
+		// Add nonce and ajaxurl for custom JS
+		wp_localize_script( $this->plugin_slug . '-plugin-script', 'CWReportAJAX', array(
+			'ajaxurl'	=> admin_url( 'admin-ajax.php' ),
+			'nonce'		=> wp_create_nonce( 'cw_report_nonce' )
+			) );
 	}
 
 	/**
@@ -202,22 +223,68 @@ class CommunityWatch {
 	 * @since    1.0.0
 	 */
 	public function add_plugin_admin_menu() {
-
 		/*
-		 * TODO:
-		 *
-		 * Change 'Page Title' to the title of your plugin admin page
-		 * Change 'Menu Text' to the text for menu item for the plugin settings page
-		 * Change 'community-watch' to the name of your plugin
+		 * Add plugin options page
 		 */
-		$this->plugin_screen_hook_suffix = add_plugins_page(
-			__( 'Page Title', $this->plugin_slug ),
-			__( 'Menu Text', $this->plugin_slug ),
+		$this->plugin_screen_hook_suffix = add_options_page(
+			__( 'Community Watch Settings', $this->plugin_slug ),
+			__( 'Community Watch', $this->plugin_slug ),
 			'read',
 			$this->plugin_slug,
 			array( $this, 'display_plugin_admin_page' )
 		);
 
+	}
+
+	/**
+	 * Adds the metabox container
+	 *
+	 * @since 1.0.0
+	 */
+	public function add_meta_boxes() {
+		add_meta_box(
+					 'cw_report_meta'
+					,__( 'Report Details', $this->plugin_slug )
+					,array( &$this, 'render_report_meta_boxes' )
+					,'cw_content_report'
+					,'advanced'
+					,'high'
+				);
+	}
+
+	public function render_report_meta_boxes( $post ) {
+		// Use nonce for verification
+		wp_nonce_field( plugin_basename( __FILE__ ), 'cw_report_nonce' );
+
+		// Get the field values
+		$user_id          = get_post_meta( $post->ID, '_cw_reported_user_id', true );
+		$reported_post_id = get_post_meta( $post->ID, '_cw_reported_post_id', true );
+
+		if ( $user_id ) {
+			$username = $this->get_username( $user_id );
+			echo '<p>';
+			echo '<label for="cw_reported_by">';
+			_e( 'Reported By:', $this->plugin_slug );
+			echo '</label> ';
+			echo '<span id="cw_reported_by" name="cw_reported_by">'.esc_attr( $username ).'</span>';
+			echo '</p>';
+		}
+
+		if ( $reported_post_id ) {
+			echo '<p>';
+			echo '<a id="cw_reported_post" name="cw_reported_post" href="'.get_permalink($reported_post_id).'">View content</a>';
+			echo '</p>';
+		}
+	}
+
+	/**
+	 * Register settings
+	 *
+	 * @since 1.0.0
+	 */
+
+	public function register_settings() {
+		register_setting( 'cw_display', 'cw_display' );
 	}
 
 	/**
@@ -229,30 +296,424 @@ class CommunityWatch {
 		include_once( 'views/admin.php' );
 	}
 
-	/**
-	 * NOTE:  Actions are points in the execution of a page or process
-	 *        lifecycle that WordPress fires.
-	 *
-	 *        WordPress Actions: http://codex.wordpress.org/Plugin_API#Actions
-	 *        Action Reference:  http://codex.wordpress.org/Plugin_API/Action_Reference
-	 *
-	 * @since    1.0.0
-	 */
-	public function action_method_name() {
-		// TODO: Define your action hook callback here
+	static function build_link() {
+		global $post;
+
+		$post_type = get_post_type( $post );
+
+		if ( ! $post_type ) {
+			return '';
+		}
+
+		$post_type_obj = get_post_type_object( $post_type );
+
+		// Build the link
+		$link = '<a href="javascript:void(0);" data-user="'
+				. wp_get_current_user()->ID
+				.  '" data-post-id="' . $post->ID
+				. '" class="cw-report-link">Report this '
+				. strtolower($post_type_obj->labels->singular_name)
+				. '</a>';
+
+		return $link;
 	}
 
 	/**
-	 * NOTE:  Filters are points of execution in which WordPress modifies data
-	 *        before saving it or sending it to the browser.
+	 * Display the 'report' link on a post
 	 *
-	 *        WordPress Filters: http://codex.wordpress.org/Plugin_API#Filters
-	 *        Filter Reference:  http://codex.wordpress.org/Plugin_API/Filter_Reference
+	 * Includes data attributes for the current user ID and post ID
 	 *
 	 * @since    1.0.0
 	 */
-	public function filter_method_name() {
-		// TODO: Define your filter hook callback here
+	public function display_report_link( $content ) {
+		global $post;
+		$output = '';
+
+		$post_type = get_post_type( $post );
+
+		// Check if enabled for this post type
+		if ( ! $this->should_display_link( $post_type ) ) {
+			return $content;
+		}
+
+		$link = $this::build_link();
+
+		$cw_display = get_option( 'cw_display' );
+
+		// Control where the link is displayed
+		if ( isset( $cw_display['position'] ) ) {
+			switch ( $cw_display['position'] ) {
+				case 'top':
+					$output = $link . $content;
+					break;
+				case 'bottom':
+					$output = $content . $link;
+					break;
+				case 'both':
+					$output = $link . $content . $link;
+					break;
+				default:
+					$output = $content;
+					break;
+			}
+		} else {
+			$output = $content;
+		}
+
+		return $output;
 	}
 
+	/**
+	 * Add bbpress reply support
+	 *
+	 * bbpress doesn't use the_content like other CPTs do, so we handle it differently
+	 *
+	 * @since 1.0.0
+	 */
+	public function bbpress_support() {
+		// Check if enabled for this post type
+		if ( ! $this->should_display_link( 'reply' ) ) {
+			return;
+		}
+
+		// Get the CW display options
+		$cw_display = get_option( 'cw_display' );
+
+		// Control where the link is displayed
+		if ( isset( $cw_display['position'] ) ) {
+			switch ( $cw_display['position'] ) {
+				case 'top':
+					add_action( 'bbp_theme_before_reply_content', 'cw_report_link' );
+					break;
+				case 'bottom':
+					add_action( 'bbp_theme_after_reply_content', 'cw_report_link' );
+					break;
+				case 'both':
+					add_action( 'bbp_theme_before_reply_content', 'cw_report_link' );
+					add_action( 'bbp_theme_after_reply_content', 'cw_report_link' );
+					break;
+			}
+		}
+	}
+
+	/**
+	 * Remove bbpress CPTs for Forums and Topics
+	 *
+	 * We don't support these in the plugin, so don't want to confuse users
+	 *
+	 * @since 1.0.0
+	 */
+	public function remove_bbpress_cpts( $types ) {
+		// Check if bbpress is installed and activated, if so
+		if ( function_exists( 'bbpress' ) ) {
+			unset( $types['forum'] );
+			unset( $types['topic'] );
+		}
+
+		return $types;
+	}
+
+	/**
+	 * Create a [cw_report_link] shortcode
+	 *
+	 * Includes data attributes for the current user ID and post ID
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_cw_report_link_shortcode( $atts ) {
+		return $this::build_link();
+	}
+
+	/**
+	 * Register custom post types
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_post_types() {
+		// Define local variable(s)
+		$post_type = array();
+
+		/** Content Reports ************************************************************/
+
+		// Content Report labels
+		$post_type['labels'] = array(
+			'name'               => __( 'Content Reports',                   $this->plugin_slug ),
+			'menu_name'          => __( 'Content Reports',                   $this->plugin_slug ),
+			'singular_name'      => __( 'Content Report',                    $this->plugin_slug ),
+			'all_items'          => __( 'Content Reports',                   $this->plugin_slug ),
+			'add_new'            => __( 'New Content Report',                $this->plugin_slug ),
+			'add_new_item'       => __( 'Create New Content Report',         $this->plugin_slug ),
+			'edit'               => __( 'Edit',                              $this->plugin_slug ),
+			'edit_item'          => __( 'Edit Content Report',               $this->plugin_slug ),
+			'new_item'           => __( 'New Content Report',                $this->plugin_slug ),
+			'view'               => __( 'View Content Report',               $this->plugin_slug ),
+			'view_item'          => __( 'View Content Report',               $this->plugin_slug ),
+			'search_items'       => __( 'Search Content Reports',            $this->plugin_slug ),
+			'not_found'          => __( 'No Content Reports found',          $this->plugin_slug ),
+			'not_found_in_trash' => __( 'No Content Reports found in Trash', $this->plugin_slug ),
+			'parent_item_colon'  => __( 'Parent Content Report:',            $this->plugin_slug )
+		);
+
+		// Content Report rewrite
+		$post_type['rewrite'] = array(
+			'slug'       => 'content-report',
+			'with_front' => false
+		);
+
+		// Content Report supports
+		$post_type['supports'] = array(
+			'title',
+			'editor',
+			'revisions'
+		);
+
+		// Register Content Report type
+		register_post_type(
+			'cw_content_report',
+			array(
+				'labels'              => $post_type['labels'],
+				'rewrite'             => $post_type['rewrite'],
+				'supports'            => $post_type['supports'],
+				'description'         => __( 'Inappropriate Content User Reports', $this->plugin_slug ),
+				'capability_type'     => 'post',
+				'menu_position'       => null,
+				'has_archive'         => 'content-reports',
+				'exclude_from_search' => true,
+				'show_in_nav_menus'   => false,
+				'publicly_queryable'  => false,
+				'public'              => false,
+				'show_ui'             => true,
+				'show_in_menu'        => 'index.php',
+				'hierarchical'        => false,
+				'query_var'           => false,
+				'supports'            => array( 'title' ),
+				'menu_icon'           => ''
+			)
+		);
+	}
+
+	/**
+	 * Post type checkbox helper
+	 *
+	 * @since 1.0.0
+	 */
+	public function post_type_boxes( $cw_types, $prefix ) {
+
+		if ( !is_array( $cw_types ) )
+			$cw_types = array();
+
+		// grab post types
+		$args	= array(
+			'public'	=> true
+		);
+		$output = 'objects';
+		$types	= apply_filters( 'cw_post_type_options', get_post_types( $args, $output ) );
+
+		$boxes	= '';
+
+		// output loop of types
+		if ( $types ) :
+			foreach ( $types as $type ) :
+				// type variables
+				$name	= $type->name;
+				$icon	= $type->menu_icon;
+				$label	= $type->labels->name;
+				// check for CPT in array
+				$check	= !empty($cw_types) && in_array($name, $cw_types) ? 'checked="checked"' : '';
+				// output checkboxes
+				$boxes	.= '<input type="checkbox" name="'.$prefix.'[types][]" id="type-'.$name.'" value="'.$name.'" '.$check.' />';
+				$boxes	.= ' <label for="type-'.$name.'">'.$label.'</label>';
+				$boxes	.= '<br />';
+			endforeach;
+		endif;
+
+		return $boxes;
+	}
+
+	/**
+	 * Get enabled post types
+	 *
+	 * @since 1.0.0
+	 */
+	public function enabled_post_types() {
+		$cw_display = get_option( 'cw_display' );
+
+		// If enabled for types, return array of types
+		if ( isset( $cw_display['types'] ) ) {
+			return $cw_display['types'];
+		}
+
+		// return an empty array if no types are enabled
+		return array();
+	}
+
+	/**
+	 * Check if post type is enabled
+	 *
+	 * @since 1.0.0
+	 */
+	public function should_display_link( $post_type ) {
+		$enabled_post_types = $this->enabled_post_types();
+
+		if ( in_array( $post_type, $enabled_post_types ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set custom column order for Content Reports
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param  [array] $columns [admin columns]
+	 *
+	 * @return [array]          [admin columns]
+	 */
+	function report_show_columns( $columns ) {
+		$columns = array(
+				'cb'    => '<input type="checkbox" />',
+				'title' => __( 'Title', $this->plugin_slug ),
+				'link'  => __( 'Link', $this->plugin_slug ),
+				'user'  => __( 'Reported By', $this->plugin_slug ),
+				'date'  => __( 'Date', $this->plugin_slug )
+			);
+
+		return $columns;
+	}
+
+	/**
+	 * Render custom admin columns for Content Reports
+	 *
+	 * @since 1.0.0
+	 */
+	function report_custom_columns( $column_name, $post_id ) {
+		global $post;
+		switch ( $column_name ) {
+			case 'link':
+				$reported_post_id = get_post_meta( $post_id, '_cw_reported_post_id', true );
+				if ( $reported_post_id ) {
+					$link = get_permalink( $reported_post_id );
+				} else {
+					$link = '';
+				}
+				echo '<a class="link_col" href="' . esc_url( $link ) . '">View content</a>';
+				break;
+			case 'user':
+				$user_id = get_post_meta( $post_id, '_cw_reported_user_id', true );
+				$user    = $this->get_username( $user_id );
+				echo '<span class="user_col">' . esc_attr( $user ) . '</span>';
+				break;
+		}
+	}
+
+	/**
+	 * Handle AJAX post reporting
+	 *
+	 * @since 1.0.0
+	 */
+	function ajax_report_post() {
+		check_ajax_referer( 'cw_report_nonce', 'nonce' );
+
+		// TODO: Add check to see if user is logged in if needed.
+
+		$post_id = $_POST['postid'];
+		$user_id = $_POST['user'];
+		$return  = array();
+
+		// Check if we were given a post ID
+		if( empty( $post_id ) ) {
+			$return['success'] = false;
+			$return['error']   = 'NO_POST_ID';
+			$return['err_msg'] = 'No Post ID could be found.';
+			echo json_encode( $return );
+			die();
+		}
+
+		// Create a new report
+		$title = get_the_title( $post_id );
+
+		$username = $this->get_username( $user_id );
+		// error_log ( 'Reported post: ' . $post_id . ': ' . $title . ' by user: ' . $user_id . ': ' . $username );
+
+		$post_args = array(
+			'post_title' => $title,
+			'post_type'  => 'cw_content_report',
+			'post_status' => 'publish',
+			// 'post_author' => TODO: find a default user id to set this to.
+		);
+
+		$report_id = wp_insert_post( $post_args );
+
+		if ( 0 != $report_id) {
+			update_post_meta( $report_id, '_cw_reported_user_id', intval( $user_id ) );
+			update_post_meta( $report_id, '_cw_reported_post_id', intval( $post_id ) );
+		} else {
+			$return['success'] = false;
+			$return['error']   = 'FAILED_SUBMIT';
+			$return['err_msg'] = 'Failed to submit report';
+			echo json_encode( $return );
+			die();
+		}
+
+		// Success, build the JSON to return
+		$return['success'] = true;
+		$return['message'] = 'reported ' . $post_id;
+
+		// TODO: Send email to admin
+		$email_to = array( get_option('admin_email') );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES); // Reverse esc_html for plain text
+		$subject = sprintf( __('[%1$s Community Watch] Please review: "%2$s"', $this->plugin_slug), $blogname, $title );
+
+		$message  = sprintf( __('Inappropriate content was reported on "%s". Please review.', $this->plugin_slug), $title ) . "\r\n\r\n";
+		$message .= get_permalink($post_id) . "\r\n\r\n";
+		$message .= sprintf( __('Reported By: %1$s', $this->plugin_slug), $username ) . "\r\n";
+
+		// Send mail to all recipients
+		foreach ( $email_to as $to )
+			@wp_mail( $to, $subject, $message );
+
+		echo json_encode( $return );
+		die();
+	}
+
+	/**
+	 * Helper to get username whether user is logged in or not
+	 *
+	 * @param  [int]     $user_id [WP user id]
+	 * @return [string]           [WP user name]
+	 */
+	function get_username( $user_id ) {
+		// Check if user is logged in
+		if ( 0 != $user_id ) {
+			$user = get_userdata( $user_id );
+			$username = $user->user_login;
+		} else {
+			$username = 'Guest';
+		}
+
+		return $username;
+	}
+
+}
+
+// helper
+if (!function_exists("preprint")) {
+    function preprint($s, $return=false) {
+        $x = "<pre>";
+        $x .= print_r($s, 1);
+        $x .= "</pre>";
+        if ($return) return $x;
+        else print $x;
+    }
+}
+
+/**
+ * Template tag for displaying link
+ *
+ * @since 1.0.0
+ */
+function cw_report_link() {
+	echo CommunityWatch::build_link();
 }
