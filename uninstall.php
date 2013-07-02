@@ -14,4 +14,5 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-// TODO: Define uninstall functionality here
+// Delete the options
+delete_option( 'cw_display' );
