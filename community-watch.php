@@ -36,4 +36,4 @@ register_activation_hook( __FILE__, array( 'CommunityWatch', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'CommunityWatch', 'deactivate' ) );
 
 // Get the class instance
-CommunityWatch::get_instance();
+add_action( 'plugins_loaded', array( 'CommunityWatch', 'get_instance' ) );
