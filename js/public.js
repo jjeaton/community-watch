@@ -25,7 +25,7 @@
 				}
 
 				if ( resp.success ) {
-					$this.text('Reported').addClass('reported');
+					$this.text(CWReportAJAX.reported_text).addClass('reported');
 				} else {
 					console.log( 'Failed: ' + resp.err_msg );
 				}

@@ -57,6 +57,15 @@ class CommunityWatch {
 	protected $plugin_screen_hook_suffix = null;
 
 	/**
+	 * Post type name
+	 *
+	 * @since    1.0.0
+	 *
+	 * @var      string
+	 */
+	const post_type = 'cw_content_report';
+
+	/**
 	 * Initialize the plugin by setting localization, filters, and administration functions.
 	 *
 	 * @since     1.0.0
@@ -67,9 +76,13 @@ class CommunityWatch {
 		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
 		// Register post types and admin columns
-		add_action( 'init',                                         array( $this, 'register_post_types'   )        );
-		add_filter( 'manage_edit-cw_content_report_columns',        array( $this, 'report_show_columns'   )        );
-		add_action( 'manage_cw_content_report_posts_custom_column',	array( $this, 'report_custom_columns' ), 10, 2 );
+		add_action( 'init',                                             array( $this, 'register_post_types'   )        );
+		add_filter( 'manage_edit-'.self::post_type.'_columns',          array( $this, 'report_show_columns'   )        );
+		add_action( 'manage_'.self::post_type.'_posts_custom_column',	array( $this, 'report_custom_columns' ), 10, 2 );
+
+		// Load sysbot
+		require_once( 'lib/class-sys-bot.php' );
+		add_action( 'plugins_loaded', array( 'sys_bot', 'init' ), 30 );
 
 		// Add the options page, menu item, and settings
 		add_action( 'admin_menu',     array( $this, 'add_plugin_admin_menu' ) );
@@ -127,7 +140,11 @@ class CommunityWatch {
 	 * @param    boolean    $network_wide    True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog.
 	 */
 	public static function activate( $network_wide ) {
-		// TODO: Define activation functionality here
+		// Call the plugin to add the post type
+		CommunityWatch::get_instance();
+
+		// Flush rewrites for CPT
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -138,7 +155,8 @@ class CommunityWatch {
 	 * @param    boolean    $network_wide    True if WPMU superadmin uses "Network Deactivate" action, false if WPMU is disabled or plugin is deactivated on an individual blog.
 	 */
 	public static function deactivate( $network_wide ) {
-		// TODO: Define deactivation functionality here
+		// Flush rewrite rules for CPT
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -232,8 +250,9 @@ class CommunityWatch {
 		wp_enqueue_script( $this->plugin_slug . '-plugin-script', plugins_url( 'js/public.js', __FILE__ ), array( 'jquery' ), $this->version );
 		// Add nonce and ajaxurl for custom JS
 		wp_localize_script( $this->plugin_slug . '-plugin-script', 'CWReportAJAX', array(
-			'ajaxurl'	=> admin_url( 'admin-ajax.php' ),
-			'nonce'		=> wp_create_nonce( 'cw_report_nonce' )
+			'ajaxurl'	     => admin_url( 'admin-ajax.php' ),
+			'nonce'		     => wp_create_nonce( 'cw_report_nonce' ),
+			'reported_text'    => __( 'Reported', $this->plugin_slug )
 			) );
 	}
 
@@ -266,7 +285,7 @@ class CommunityWatch {
 					 'cw_report_meta'
 					,__( 'Report Details', $this->plugin_slug )
 					,array( &$this, 'render_report_meta_boxes' )
-					,'cw_content_report'
+					,self::post_type
 					,'advanced'
 					,'high'
 				);
@@ -292,7 +311,7 @@ class CommunityWatch {
 
 		if ( $reported_post_id ) {
 			echo '<p>';
-			echo '<a id="cw_reported_post" name="cw_reported_post" href="'.get_permalink($reported_post_id).'">View content</a>';
+			echo '<a id="cw_reported_post" name="cw_reported_post" href="'.get_permalink($reported_post_id).'">' . __('View content', $this->plugin_slug) . '</a>';
 			echo '</p>';
 		}
 	}
@@ -316,7 +335,7 @@ class CommunityWatch {
 		include_once( 'views/admin.php' );
 	}
 
-	static function build_link() {
+	public function build_link() {
 		global $post;
 
 		$post_type = get_post_type( $post );
@@ -330,10 +349,11 @@ class CommunityWatch {
 		// Build the link
 		$link = '<a href="javascript:void(0);" data-user="'
 				. wp_get_current_user()->ID
-				.  '" data-post-id="' . $post->ID
-				. '" class="cw-report-link">Report this '
-				. strtolower($post_type_obj->labels->singular_name)
-				. '</a>';
+				. '" data-post-id="' . $post->ID
+				. '" class="cw-report-link">';
+		$link .= sprintf( __('Report this %s', $this->plugin_slug),
+				 strtolower($post_type_obj->labels->singular_name) );
+		$link .= '</a>';
 
 		return $link;
 	}
@@ -356,11 +376,13 @@ class CommunityWatch {
 			return $content;
 		}
 
-		$link = $this::build_link();
+		// Build the link
+		$link = $this->build_link();
 
-		$cw_display = get_option( 'cw_display' );
 
 		// Control where the link is displayed
+		$cw_display = get_option( 'cw_display' );
+
 		if ( isset( $cw_display['position'] ) ) {
 			switch ( $cw_display['position'] ) {
 				case 'top':
@@ -441,7 +463,7 @@ class CommunityWatch {
 	 * @since    1.0.0
 	 */
 	public function add_cw_report_link_shortcode( $atts ) {
-		return $this::build_link();
+		return $this->build_link();
 	}
 
 	/**
@@ -489,7 +511,7 @@ class CommunityWatch {
 
 		// Register Content Report type
 		register_post_type(
-			'cw_content_report',
+			self::post_type,
 			array(
 				'labels'              => $post_type['labels'],
 				'rewrite'             => $post_type['rewrite'],
@@ -594,10 +616,10 @@ class CommunityWatch {
 	function report_show_columns( $columns ) {
 		$columns = array(
 				'cb'    => '<input type="checkbox" />',
-				'title' => __( 'Title', $this->plugin_slug ),
-				'link'  => __( 'Link', $this->plugin_slug ),
+				'title' => __( 'Title',       $this->plugin_slug ),
+				'link'  => __( 'Link',        $this->plugin_slug ),
 				'user'  => __( 'Reported By', $this->plugin_slug ),
-				'date'  => __( 'Date', $this->plugin_slug )
+				'date'  => __( 'Date',        $this->plugin_slug )
 			);
 
 		return $columns;
@@ -618,7 +640,7 @@ class CommunityWatch {
 				} else {
 					$link = '';
 				}
-				echo '<a class="link_col" href="' . esc_url( $link ) . '">View content</a>';
+				echo '<a class="link_col" href="' . esc_url( $link ) . '">'.__('View content', $this->plugin_slug).'</a>';
 				break;
 			case 'user':
 				$user_id = get_post_meta( $post_id, '_cw_reported_user_id', true );
@@ -659,9 +681,9 @@ class CommunityWatch {
 
 		$post_args = array(
 			'post_title' => $title,
-			'post_type'  => 'cw_content_report',
+			'post_type'  => self::post_type,
 			'post_status' => 'publish',
-			// 'post_author' => TODO: find a default user id to set this to.
+			'post_author' => get_bot()->ID // Get our bot ID as post author
 		);
 
 		$report_id = wp_insert_post( $post_args );
@@ -681,7 +703,7 @@ class CommunityWatch {
 		$return['success'] = true;
 		$return['message'] = 'reported ' . $post_id;
 
-		// TODO: Send email to admin
+		// Notify admin
 		$email_to = array( get_option('admin_email') );
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES); // Reverse esc_html for plain text
 		$subject = sprintf( __('[%1$s Community Watch] Please review: "%2$s"', $this->plugin_slug), $blogname, $title );
@@ -710,7 +732,7 @@ class CommunityWatch {
 			$user = get_userdata( $user_id );
 			$username = $user->user_login;
 		} else {
-			$username = 'Guest';
+			$username = __('Guest', $this->plugin_slug);
 		}
 
 		return $username;
@@ -720,13 +742,13 @@ class CommunityWatch {
 
 // helper
 if (!function_exists("preprint")) {
-    function preprint($s, $return=false) {
-        $x = "<pre>";
-        $x .= print_r($s, 1);
-        $x .= "</pre>";
-        if ($return) return $x;
-        else print $x;
-    }
+	function preprint($s, $return=false) {
+		$x = "<pre>";
+		$x .= print_r($s, 1);
+		$x .= "</pre>";
+		if ($return) return $x;
+		else print $x;
+	}
 }
 
 /**
@@ -735,5 +757,5 @@ if (!function_exists("preprint")) {
  * @since 1.0.0
  */
 function cw_report_link() {
-	echo CommunityWatch::build_link();
+	echo CommunityWatch::get_instance()->build_link();
 }
