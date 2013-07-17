@@ -232,10 +232,20 @@ class CommunityWatch {
 	public function public_css() {
 		?>
 <style>
-	.cw-report-link.reported,
-	#bbpress-forums div.bbp-reply-content a.cw-report-link.reported {
-		background: url(<?php echo plugins_url( 'img/tick.png', __FILE__ );?>) no-repeat 0 0;
-		padding-left: 20px;
+	.cw-report-link.icons:before {
+		content: "";
+		background-image: url(<?php echo plugins_url( 'img/tick-x.png', __FILE__ );?>);
+		background-repeat: no-repeat;
+		display: inline-block;
+		width: 14px;
+		height: 14px;
+		margin-top: 3px;
+		line-height: 14px;
+		vertical-align: text-top;
+	}
+	.cw-report-link.icons.reported:before,
+	#bbpress-forums div.bbp-reply-content a.cw-report-link.icons.reported:before {
+		background-position: 0px -14px;
 	}
 </style>
 	<?php
@@ -344,13 +354,20 @@ class CommunityWatch {
 			return '';
 		}
 
+		$classes = 'cw-report-link';
 		$post_type_obj = get_post_type_object( $post_type );
+
+		$cw_display = get_option( 'cw_display' );
+
+		if ( isset($cw_display['show_icons']) && $cw_display['show_icons'] ) {
+			$classes .= ' icons';
+		}
 
 		// Build the link
 		$link = '<a href="javascript:void(0);" data-user="'
 				. wp_get_current_user()->ID
 				. '" data-post-id="' . $post->ID
-				. '" class="cw-report-link">';
+				. '" class="' . $classes . '">';
 		$link .= sprintf( __('Report this %s', $this->plugin_slug),
 				 strtolower($post_type_obj->labels->singular_name) );
 		$link .= '</a>';
