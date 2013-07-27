@@ -4,168 +4,167 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Community Watch 1.0.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/community-watch\n"
-"POT-Creation-Date: 2013-07-03 01:10:30+00:00\n"
+"POT-Creation-Date: 2013-07-26 18:54-0800\n"
+"PO-Revision-Date: 2013-07-26 18:54-0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2013-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: Poedit 1.5.7\n"
+"X-Poedit-KeywordsList: __;gettext;gettext_noop;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
 
-#: class-community-watch.php:259
+#: ../class-community-watch.php:265
 msgid "Reported"
 msgstr ""
 
-#: class-community-watch.php:273
+#: ../class-community-watch.php:279
 msgid "Community Watch Settings"
 msgstr ""
 
-#. #-#-#-#-#  community-watch.pot (Community Watch 1.0.0)  #-#-#-#-#
-#. Plugin Name of the plugin/theme
-#: class-community-watch.php:274
+#: ../class-community-watch.php:280
 msgid "Community Watch"
 msgstr ""
 
-#: class-community-watch.php:290
+#: ../class-community-watch.php:296
 msgid "Report Details"
 msgstr ""
 
-#: class-community-watch.php:310
+#: ../class-community-watch.php:316
 msgid "Reported By:"
 msgstr ""
 
-#: class-community-watch.php:318 class-community-watch.php:647
+#: ../class-community-watch.php:324 ../class-community-watch.php:660
 msgid "View content"
 msgstr ""
 
-#: class-community-watch.php:358
+#: ../class-community-watch.php:371
+#, php-format
 msgid "Report this %s"
 msgstr ""
 
-#: class-community-watch.php:486 class-community-watch.php:487
-#: class-community-watch.php:489
+#: ../class-community-watch.php:499 ../class-community-watch.php:500
+#: ../class-community-watch.php:502
 msgid "Content Reports"
 msgstr ""
 
-#: class-community-watch.php:488
+#: ../class-community-watch.php:501
 msgid "Content Report"
 msgstr ""
 
-#: class-community-watch.php:490 class-community-watch.php:494
+#: ../class-community-watch.php:503 ../class-community-watch.php:507
 msgid "New Content Report"
 msgstr ""
 
-#: class-community-watch.php:491
+#: ../class-community-watch.php:504
 msgid "Create New Content Report"
 msgstr ""
 
-#: class-community-watch.php:492
+#: ../class-community-watch.php:505
 msgid "Edit"
 msgstr ""
 
-#: class-community-watch.php:493
+#: ../class-community-watch.php:506
 msgid "Edit Content Report"
 msgstr ""
 
-#: class-community-watch.php:495 class-community-watch.php:496
+#: ../class-community-watch.php:508 ../class-community-watch.php:509
 msgid "View Content Report"
 msgstr ""
 
-#: class-community-watch.php:497
+#: ../class-community-watch.php:510
 msgid "Search Content Reports"
 msgstr ""
 
-#: class-community-watch.php:498
+#: ../class-community-watch.php:511
 msgid "No Content Reports found"
 msgstr ""
 
-#: class-community-watch.php:499
+#: ../class-community-watch.php:512
 msgid "No Content Reports found in Trash"
 msgstr ""
 
-#: class-community-watch.php:500
+#: ../class-community-watch.php:513
 msgid "Parent Content Report:"
 msgstr ""
 
-#: class-community-watch.php:523
+#: ../class-community-watch.php:536
 msgid "Inappropriate Content User Reports"
 msgstr ""
 
-#: class-community-watch.php:623
+#: ../class-community-watch.php:636
 msgid "Title"
 msgstr ""
 
-#: class-community-watch.php:624
+#: ../class-community-watch.php:637
 msgid "Link"
 msgstr ""
 
-#: class-community-watch.php:625
+#: ../class-community-watch.php:638
 msgid "Reported By"
 msgstr ""
 
-#: class-community-watch.php:626
+#: ../class-community-watch.php:639
 msgid "Date"
 msgstr ""
 
-#: class-community-watch.php:713
+#: ../class-community-watch.php:726
+#, php-format
 msgid "[%1$s Community Watch] Please review: \"%2$s\""
 msgstr ""
 
-#: class-community-watch.php:715
+#: ../class-community-watch.php:728
+#, php-format
 msgid "Inappropriate content was reported on \"%s\". Please review."
 msgstr ""
 
-#: class-community-watch.php:717
+#: ../class-community-watch.php:730
+#, php-format
 msgid "Reported By: %1$s"
 msgstr ""
 
-#: class-community-watch.php:739
+#: ../class-community-watch.php:752
 msgid "Guest"
 msgstr ""
 
-#: views/admin.php:39
+#: ../views/admin.php:39
 msgid "Select the post types to include"
 msgstr ""
 
-#: views/admin.php:48
+#: ../views/admin.php:48
 msgid "Link text"
 msgstr ""
 
-#: views/admin.php:55
+#: ../views/admin.php:55
 msgid "Link placement"
 msgstr ""
 
-#: views/admin.php:58
+#: ../views/admin.php:58
 msgid "Before post content"
 msgstr ""
 
-#: views/admin.php:63
+#: ../views/admin.php:63
 msgid "After post content"
 msgstr ""
 
-#: views/admin.php:68
+#: ../views/admin.php:68
 msgid "Above and below content"
 msgstr ""
 
-#: views/admin.php:73
+#: ../views/admin.php:73
 msgid "Place manually via <code>cw_report_link();</code> template tag"
 msgstr ""
 
-#: views/admin.php:81
+#: ../views/admin.php:79
+msgid "Icon display"
+msgstr ""
+
+#: ../views/admin.php:82
+msgid "Show icons before links"
+msgstr ""
+
+#: ../views/admin.php:89
 msgid "Save Changes"
-msgstr ""
-
-#. #-#-#-#-#  community-watch.pot (Community Watch 1.0.0)  #-#-#-#-#
-#. Plugin URI of the plugin/theme
-#. #-#-#-#-#  community-watch.pot (Community Watch 1.0.0)  #-#-#-#-#
-#. Author URI of the plugin/theme
-msgid "http://www.josheaton.org/"
-msgstr ""
-
-#. Description of the plugin/theme
-msgid "Allows users to report inappropriate content across all content types."
-msgstr ""
-
-#. Author of the plugin/theme
-msgid "Josh Eaton"
 msgstr ""
