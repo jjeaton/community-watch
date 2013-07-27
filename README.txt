@@ -25,6 +25,16 @@ Administrators can choose which post types to enable the report link and whether
 1. Enable post types and display options at Settings > Community Watch.
 1. View content reports at Dashboard > Content Reports.
 
+== Frequently Asked Questions ==
+
+= Why is there a user with a weird name like 'cwbot@example.com'? =
+
+Don't panic. Your site is fine. The plugin automatically creates a user with Editor privileges to be the author of the content reports. When the plugin is uninstalled, it will remove this user.
+
+= What happens when I uninstall the plugin? =
+
+All options, content reports, and the content report user 'CommunityWatchBot' will be removed from your site.
+
 == Changelog ==
 
 = 1.0.0 =
