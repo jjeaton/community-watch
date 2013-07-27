@@ -16,8 +16,6 @@ Allows users to report inappropriate content across a site's content types. An e
 
 Administrators can choose which post types to enable the report link and whether the link should appear before or after the content.
 
-*Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/).*
-
 == Installation ==
 
 1. Upload the `community-watch` folder to the `/wp-content/plugins/` directory
