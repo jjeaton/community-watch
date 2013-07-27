@@ -105,8 +105,9 @@ class sys_bot
 			return wp_update_user(
 				array(
 					'ID'            => $user->ID,
-					'user_nickname' => $this->nick,
-					'user_nicename' => $this->nick
+					'nickname'      => $this->nick,
+					'user_nicename' => $this->nick,
+					'first_name'    => $this->nick
 				)
 			);
 		}
@@ -124,8 +125,9 @@ class sys_bot
 		wp_update_user(
 			array(
 				'ID'            => $user_id,
-				'user_nickname' => $this->nick,
-				'user_nicename' => $this->nick
+				'nickname'      => $this->nick,
+				'user_nicename' => $this->nick,
+				'first_name'    => $this->nick
 			)
 		);
 		// Setup the bot
