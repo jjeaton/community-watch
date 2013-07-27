@@ -76,11 +76,11 @@ class sys_bot
 	{
 		add_action( 'admin_init', array( $this, 'register_bot' ) );
 
-		// if (
-		// 	current_user_can( 'manage_options' )
-		// 	AND ( defined( 'WP_DEBUG' ) AND WP_DEBUG )
-		// )
-		// 	add_action( 'shutdown', array( $this, 'debug' ) );
+		if (
+			current_user_can( 'manage_options' )
+			AND ( defined( 'WP_DEBUG' ) AND WP_DEBUG )
+		)
+			add_action( 'shutdown', array( $this, 'debug' ) );
 	}
 
 	/**
