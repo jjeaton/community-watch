@@ -278,7 +278,7 @@ class CommunityWatch {
 		$this->plugin_screen_hook_suffix = add_options_page(
 			__( 'Community Watch Settings', $this->plugin_slug ),
 			__( 'Community Watch', $this->plugin_slug ),
-			'read',
+			'manage_options',
 			$this->plugin_slug,
 			array( $this, 'display_plugin_admin_page' )
 		);
