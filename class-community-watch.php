@@ -89,13 +89,8 @@ class CommunityWatch {
 		add_action( 'admin_init',     array( $this, 'register_settings'     ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes'        ) );
 
-		// Load admin style sheet and JavaScript.
-		// add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
-		// add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-
 		// Load public-facing style sheet and JavaScript.
-		// add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+ 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_head',            array( $this, 'public_css'      ) );
 
 		// Display 'report' link
@@ -171,46 +166,6 @@ class CommunityWatch {
 
 		load_textdomain( $domain, WP_LANG_DIR . '/' . $domain . '/' . $domain . '-' . $locale . '.mo' );
 		load_plugin_textdomain( $domain, FALSE, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
-	}
-
-	/**
-	 * Register and enqueue admin-specific style sheet.
-	 *
-	 * @since     1.0.0
-	 *
-	 * @return    null    Return early if no settings page is registered.
-	 */
-	public function enqueue_admin_styles() {
-
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
-		$screen = get_current_screen();
-		if ( $screen->id == $this->plugin_screen_hook_suffix ) {
-			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array(), $this->version );
-		}
-
-	}
-
-	/**
-	 * Register and enqueue admin-specific JavaScript.
-	 *
-	 * @since     1.0.0
-	 *
-	 * @return    null    Return early if no settings page is registered.
-	 */
-	public function enqueue_admin_scripts() {
-
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
-		$screen = get_current_screen();
-		if ( $screen->id == $this->plugin_screen_hook_suffix ) {
-			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery' ), $this->version );
-		}
-
 	}
 
 	/**
@@ -293,14 +248,19 @@ class CommunityWatch {
 	public function add_meta_boxes() {
 		add_meta_box(
 					 'cw_report_meta'
-					,__( 'Report Details', $this->plugin_slug )
-					,array( &$this, 'render_report_meta_boxes' )
-					,self::post_type
-					,'advanced'
-					,'high'
+					, __( 'Report Details', $this->plugin_slug )
+					, array( &$this, 'render_report_meta_boxes' )
+					, self::post_type
+					, 'advanced'
+					, 'high'
 				);
 	}
 
+	/**
+	 * Callback for metaboxes on content_report CPT
+	 *
+	 * @since 1.0.0
+	 */
 	public function render_report_meta_boxes( $post ) {
 		// Use nonce for verification
 		wp_nonce_field( plugin_basename( __FILE__ ), 'cw_report_nonce' );
@@ -345,6 +305,14 @@ class CommunityWatch {
 		include_once( 'views/admin.php' );
 	}
 
+	/**
+	 * Build the report link
+	 *
+	 * Used in the shortcode and template tag
+	 *
+	 * @since 1.0.0
+	 * @return string
+	 */
 	public function build_link() {
 		global $post;
 
@@ -395,7 +363,6 @@ class CommunityWatch {
 
 		// Build the link
 		$link = $this->build_link();
-
 
 		// Control where the link is displayed
 		$cw_display = get_option( 'cw_display' );
@@ -755,17 +722,6 @@ class CommunityWatch {
 		return $username;
 	}
 
-}
-
-// helper
-if (!function_exists("preprint")) {
-	function preprint($s, $return=false) {
-		$x = "<pre>";
-		$x .= print_r($s, 1);
-		$x .= "</pre>";
-		if ($return) return $x;
-		else print $x;
-	}
 }
 
 /**
