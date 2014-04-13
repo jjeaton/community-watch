@@ -1,5 +1,5 @@
 === Community Watch ===
-Contributors: jjeaton
+Contributors: jjeaton, mufasa
 Donate link: http://www.josheaton.org/
 Tags: community, content
 Requires at least: 3.5.1
@@ -36,4 +36,5 @@ All options, content reports, and the content report user 'CommunityWatchBot' wi
 == Changelog ==
 
 = 1.0.0 =
+
 * Initial Version
